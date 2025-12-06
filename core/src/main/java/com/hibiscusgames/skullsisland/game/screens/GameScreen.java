@@ -90,6 +90,9 @@ public class GameScreen implements Screen {
             if (Gdx.input.isKeyPressed(Input.Keys.S)) {
                 player.moveDown(delta, SPEED);
             }
+            if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)){
+                player.throwBall();
+            }
         }
     }
 

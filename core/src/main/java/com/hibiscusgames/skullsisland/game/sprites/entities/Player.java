@@ -13,21 +13,20 @@ import com.hibiscusgames.skullsisland.game.screens.GameScreen;
 import com.hibiscusgames.skullsisland.game.sprites.utilities.Animate;
 
 public class Player extends Sprite {
-    public enum State {STANDING, WALKING, DEAD};
+    public enum State {STANDING, WALKING, DEAD}
     public State currentState;
     public State previousState;
 
-    private Texture player;
-    private Texture playerWalkUpSheet;
-    private Texture playerWalkLeftSheet;
-    private Texture playerWalkRightSheet;
-    private Texture playerWalkDownSheet;
-    private Animation<TextureRegion> playerWalkUp;
-    private Animation<TextureRegion> playerWalkLeft;
-    private Animation<TextureRegion> playerWalkRight;
-    private Animation<TextureRegion> playerWalkDown;
-    private TextureRegion[] frames;
-    TextureRegion region;
+    private final Texture player;
+    private final Texture playerWalkUpSheet;
+    private final Texture playerWalkLeftSheet;
+    private final Texture playerWalkRightSheet;
+    private final Texture playerWalkDownSheet;
+    private final Animation<TextureRegion> playerWalkUp;
+    private final Animation<TextureRegion> playerWalkLeft;
+    private final Animation<TextureRegion> playerWalkRight;
+    private final Animation<TextureRegion> playerWalkDown;
+    private TextureRegion region;
     private TextureRegion currentFrame;
     private final String SPRITE_PATH = "sprites/player/";
     private final byte SPRITE_WIDTH = 96;
@@ -43,9 +42,14 @@ public class Player extends Sprite {
 
     private boolean isDead;
 
-    private Sound walkingSound;
+    private final Sound walkingSound;
     private long walkingSoundID;
     private boolean isWalkingSoundPlaying;
+
+    private final Sound throwSound;
+
+    private float throwCooldown;
+    private float throwCooldownTime = 5.0f;
 
     public Player(GameScreen gameScreen) {
         this.gameScreen = gameScreen;
@@ -80,10 +84,19 @@ public class Player extends Sprite {
         walkingSound = SkullsIsland.assetManager.get(SkullsIsland.SFX_PATH + "walking-on-grass.ogg");
         walkingSoundID = -1;
         isWalkingSoundPlaying = false;
+
+        throwSound = SkullsIsland.assetManager.get(SkullsIsland.SFX_PATH + "throw.wav");
+
+        throwCooldown = 0f;
     }
 
     public void update(float delta){
+        previousState = currentState;
         animationDuration += delta;
+
+        if (throwCooldown > 0) {
+            throwCooldown -= delta;
+        }
 
         if (!Gdx.input.isKeyPressed(Input.Keys.W) && !Gdx.input.isKeyPressed(Input.Keys.A) && !Gdx.input.isKeyPressed(Input.Keys.S) && !Gdx.input.isKeyPressed(Input.Keys.D)) {
             currentState = State.STANDING;
@@ -105,6 +118,10 @@ public class Player extends Sprite {
             walkingSound.stop(walkingSoundID);
             isWalkingSoundPlaying = false;
         }
+    }
+
+    public void playThrowSound(){
+        throwSound.play(1f);
     }
 
     private TextureRegion getFrame() {
@@ -160,6 +177,22 @@ public class Player extends Sprite {
     public void moveDown(float delta, float speed){
         setY(getY() - speed * delta);
         currentState = State.WALKING;
+    }
+
+    public void throwBall() {
+        if (throwCooldown <= 0){
+            playThrowSound();
+            spawnBall();
+            throwCooldown = throwCooldownTime;
+        }
+    }
+
+    public void spawnBall(){
+        System.out.println("Ball was thrown!!!");
+    }
+
+    public boolean canThrow(){
+        return throwCooldown <= 0;
     }
 
     public void draw(SpriteBatch spriteBatch){
