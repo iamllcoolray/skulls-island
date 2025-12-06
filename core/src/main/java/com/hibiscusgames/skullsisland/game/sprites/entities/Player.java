@@ -2,6 +2,7 @@ package com.hibiscusgames.skullsisland.game.sprites.entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -42,6 +43,10 @@ public class Player extends Sprite {
 
     private boolean isDead;
 
+    private Sound walkingSound;
+    private long walkingSoundID;
+    private boolean isWalkingSoundPlaying;
+
     public Player(GameScreen gameScreen) {
         this.gameScreen = gameScreen;
 
@@ -71,6 +76,10 @@ public class Player extends Sprite {
         previousState = State.STANDING;
 
         animationDuration = 0;
+
+        walkingSound = SkullsIsland.assetManager.get(SkullsIsland.SFX_PATH + "walking-on-grass.ogg");
+        walkingSoundID = -1;
+        isWalkingSoundPlaying = false;
     }
 
     public void update(float delta){
@@ -82,6 +91,20 @@ public class Player extends Sprite {
 
         currentFrame = getFrame();
         setRegion(currentFrame);
+    }
+
+    public void playWalkingSound(){
+        if (!isWalkingSoundPlaying) {
+            walkingSoundID = walkingSound.loop(1f);
+            isWalkingSoundPlaying = true;
+        }
+    }
+
+    public void stopWalkingSound(){
+        if (isWalkingSoundPlaying) {
+            walkingSound.stop(walkingSoundID);
+            isWalkingSoundPlaying = false;
+        }
     }
 
     private TextureRegion getFrame() {
@@ -99,10 +122,12 @@ public class Player extends Sprite {
                 if (Gdx.input.isKeyPressed(Input.Keys.S)) {
                     region = playerWalkDown.getKeyFrame(animationDuration, true);
                 }
+                playWalkingSound();
                 break;
             case DEAD:
             default:
                 region = new TextureRegion(player);
+                stopWalkingSound();
                 break;
         }
 

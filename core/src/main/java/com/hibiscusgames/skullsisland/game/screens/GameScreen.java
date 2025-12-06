@@ -3,6 +3,7 @@ package com.hibiscusgames.skullsisland.game.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.maps.MapProperties;
@@ -36,6 +37,8 @@ public class GameScreen implements Screen {
 
     private Player player;
 
+    private Music music;
+
     public GameScreen(SkullsIsland game) {
         this.game = game;
 
@@ -61,6 +64,11 @@ public class GameScreen implements Screen {
         orthographicCamera.position.set(adjustedTiledMapMetersWidth / 2, adjustedTiledMapMetersHeight / 2, 0);
 
         player = new Player(this);
+
+        music = SkullsIsland.assetManager.get(SkullsIsland.MUSIC_PATH + "pirate.ogg");
+        music.setLooping(true);
+        music.setVolume(0.3f);
+        music.play();
     }
 
     @Override
