@@ -4,8 +4,10 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.maps.MapProperties;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
@@ -19,7 +21,7 @@ import com.hibiscusgames.skullsisland.game.sprites.entities.Player;
 
 /** First screen of the application. Displayed after the application is created. */
 public class GameScreen implements Screen {
-    private SkullsIsland game;
+    private final SkullsIsland game;
 
     private OrthographicCamera orthographicCamera;
     private Viewport viewport;
@@ -38,6 +40,13 @@ public class GameScreen implements Screen {
     private Player player;
 
     private Music music;
+
+    private Cursor cursor;
+    private Pixmap crosshairs;
+    private Pixmap resizedCrosshairs;
+    private final byte RESIZE = 64;
+    private int offsetX;
+    private int offsetY;
 
     public GameScreen(SkullsIsland game) {
         this.game = game;
@@ -74,6 +83,20 @@ public class GameScreen implements Screen {
     @Override
     public void show() {
         // Prepare your screen here.
+        crosshairs = new Pixmap(Gdx.files.internal("sprites/props/crosshairs.png"));
+        resizedCrosshairs = new Pixmap(RESIZE, RESIZE, crosshairs.getFormat());
+
+        offsetX = (RESIZE - crosshairs.getWidth()) / 2;
+        offsetY = (RESIZE - crosshairs.getHeight()) / 2;
+
+        resizedCrosshairs.drawPixmap(crosshairs, offsetX, offsetY, 0, 0, crosshairs.getWidth(), crosshairs.getHeight());
+
+        cursor = Gdx.graphics.newCursor(resizedCrosshairs, resizedCrosshairs.getWidth() / 2, resizedCrosshairs.getHeight() / 2);
+
+        Gdx.graphics.setCursor(cursor);
+
+        crosshairs.dispose();
+        resizedCrosshairs.dispose();
     }
 
     private void inputHandler(float delta){
@@ -154,6 +177,9 @@ public class GameScreen implements Screen {
         tiledMap.dispose();
         orthogonalTiledMapRenderer.dispose();
         player.dispose();
+        if(cursor != null){
+            cursor.dispose();
+        }
     }
 
     public float getAdjustedTiledMapMetersHeight() {
