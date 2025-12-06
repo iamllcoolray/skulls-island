@@ -177,9 +177,7 @@ public class GameScreen implements Screen {
         tiledMap.dispose();
         orthogonalTiledMapRenderer.dispose();
         player.dispose();
-        if(cursor != null){
-            cursor.dispose();
-        }
+        cursor.dispose();
     }
 
     public float getAdjustedTiledMapMetersHeight() {
