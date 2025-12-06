@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="26" height="26" tilewidth="96" tileheight="96" infinite="0" nextlayerid="4" nextobjectid="11">
+ <imagelayer id="2" name="Background">
+  <image source="background.png" width="2496" height="2496"/>
+ </imagelayer>
+ <objectgroup id="3" name="Map Boundaries">
+  <object id="4" name="Boundary" x="673.357" y="671.738" width="1149.24" height="19.4238"/>
+  <object id="6" name="Boundary" x="673.357" y="1798.32" width="1149.24" height="29.1356"/>
+  <object id="8" name="Boundary" x="673.357" y="673.357" width="14.5678" height="1158.95"/>
+  <object id="9" name="Boundary" x="1804.79" y="673.357" width="19.4238" height="1157.33"/>
+ </objectgroup>
+</map>
