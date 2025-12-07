@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.physics.box2d.*;
 import com.hibiscusgames.skullsisland.game.SkullsIsland;
 import com.hibiscusgames.skullsisland.game.screens.GameScreen;
 import com.hibiscusgames.skullsisland.game.sprites.utilities.Animate;
@@ -40,6 +41,9 @@ public class Player extends Sprite {
 
     private GameScreen gameScreen;
 
+    private World world;
+    private Body body;
+
     private boolean isDead;
 
     private final Sound walkingSound;
@@ -53,6 +57,7 @@ public class Player extends Sprite {
 
     public Player(GameScreen gameScreen) {
         this.gameScreen = gameScreen;
+        this.world = gameScreen.getWorld();
 
         animate = new Animate();
 
@@ -74,7 +79,12 @@ public class Player extends Sprite {
 
         setOrigin(spriteMetersSize / 2, spriteMetersSize / 2);
 
-        setPosition(gameScreen.getAdjustedTiledMapMetersWidth() / 2, gameScreen.getAdjustedTiledMapMetersHeight() / 2);
+        float x = gameScreen.getAdjustedTiledMapMetersWidth() / 2;
+        float y = gameScreen.getAdjustedTiledMapMetersHeight() / 2;
+
+        setPosition(x, y);
+
+        createBody(x, y, spriteMetersSize);
 
         currentState = State.STANDING;
         previousState = State.STANDING;
@@ -90,15 +100,44 @@ public class Player extends Sprite {
         throwCooldown = 0f;
     }
 
+    private void createBody(float x, float y, float size) {
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.DynamicBody;
+        bodyDef.position.set(x, y);
+        bodyDef.fixedRotation = true;
+
+        body = world.createBody(bodyDef);
+
+        PolygonShape shape = new PolygonShape();
+        shape.setAsBox(size / 3.25f, size / 2.25f);
+
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        fixtureDef.density = 1.0f;
+        fixtureDef.friction = 0.0f;
+        fixtureDef.restitution = 0.0f;
+
+        body.createFixture(fixtureDef);
+        shape.dispose();
+
+        body.setUserData(this);
+    }
+
     public void update(float delta){
         previousState = currentState;
         animationDuration += delta;
+
+        setPosition(
+            body.getPosition().x - getWidth() / 2,
+            body.getPosition().y - getHeight() / 2
+        );
 
         if (throwCooldown > 0) {
             throwCooldown -= delta;
         }
 
         if (!Gdx.input.isKeyPressed(Input.Keys.W) && !Gdx.input.isKeyPressed(Input.Keys.A) && !Gdx.input.isKeyPressed(Input.Keys.S) && !Gdx.input.isKeyPressed(Input.Keys.D)) {
+            body.setLinearVelocity(0, 0);
             currentState = State.STANDING;
         }
 
@@ -152,30 +191,30 @@ public class Player extends Sprite {
     }
 
     public float getCenterX() {
-        return getX() + getWidth() / 2;
+        return body.getPosition().x;
     }
 
     public float getCenterY() {
-        return getY() + getHeight() / 2;
+        return body.getPosition().y;
     }
 
     public void moveUp(float delta, float speed){
-        setY(getY() + speed * delta);
+        body.setLinearVelocity(body.getLinearVelocity().x, speed);
         currentState = State.WALKING;
     }
 
     public void moveLeft(float delta, float speed){
-        setX(getX() - speed * delta);
+        body.setLinearVelocity(-speed, body.getLinearVelocity().y);
         currentState = State.WALKING;
     }
 
     public void moveRight(float delta, float speed){
-        setX(getX() + speed * delta);
+        body.setLinearVelocity(speed, body.getLinearVelocity().y);
         currentState = State.WALKING;
     }
 
     public void moveDown(float delta, float speed){
-        setY(getY() - speed * delta);
+        body.setLinearVelocity(body.getLinearVelocity().x, -speed);
         currentState = State.WALKING;
     }
 
@@ -205,6 +244,21 @@ public class Player extends Sprite {
         }else{
             return State.STANDING;
         }
+    }
+
+    public void onBoundaryCollision() {
+        System.out.println("Player collided with boundary!");
+        // Play sound, take damage, etc.
+    }
+
+    public void onEnemyCollision() {
+        System.out.println("Player collided with enemy!");
+        // Take damage, play hurt sound
+    }
+
+    public void onItemCollision() {
+        System.out.println("Player collected item!");
+        // Add to inventory, play pickup sound
     }
 
     public void dispose(){

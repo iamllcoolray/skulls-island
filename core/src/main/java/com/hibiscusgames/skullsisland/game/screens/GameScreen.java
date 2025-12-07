@@ -8,16 +8,24 @@ import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.maps.MapLayer;
+import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapProperties;
+import com.badlogic.gdx.maps.objects.CircleMapObject;
+import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
-import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.utils.Null;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hibiscusgames.skullsisland.game.SkullsIsland;
 import com.hibiscusgames.skullsisland.game.sprites.entities.Player;
+import com.hibiscusgames.skullsisland.game.sprites.utilities.CollisionListener;
 
 /** First screen of the application. Displayed after the application is created. */
 public class GameScreen implements Screen {
@@ -36,6 +44,7 @@ public class GameScreen implements Screen {
 
     private World world;
     private Box2DDebugRenderer box2DDebugRenderer;
+    private MapLayer boundaryLayer;
 
     private Player player;
 
@@ -72,6 +81,13 @@ public class GameScreen implements Screen {
 
         orthographicCamera.position.set(adjustedTiledMapMetersWidth / 2, adjustedTiledMapMetersHeight / 2, 0);
 
+        world = new World(new Vector2(0, 0), true);
+        box2DDebugRenderer = new Box2DDebugRenderer();
+
+        world.setContactListener(new CollisionListener());
+
+        createBoundaries();
+
         player = new Player(this);
 
         music = SkullsIsland.assetManager.get(SkullsIsland.MUSIC_PATH + "pirate.ogg");
@@ -99,6 +115,81 @@ public class GameScreen implements Screen {
         resizedCrosshairs.dispose();
     }
 
+    private void createBoundaries(){
+        boundaryLayer = tiledMap.getLayers().get("Map Boundaries");
+
+        if (boundaryLayer == null){
+            System.out.println("Boundary layers not found.");
+            return;
+        }
+
+        for (MapObject mapObject : boundaryLayer.getObjects()){
+            if(mapObject instanceof RectangleMapObject){
+                createRectangleBody((RectangleMapObject) mapObject);
+            } else if (mapObject instanceof CircleMapObject) {
+                createCircleBody((CircleMapObject) mapObject);
+            }
+        }
+    }
+
+    private void createRectangleBody(RectangleMapObject rectangleObject) {
+        Rectangle rectangle = rectangleObject.getRectangle();
+
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.StaticBody;
+
+        float x = (rectangle.x + rectangle.width / 2) / SkullsIsland.PPM;
+        float y = (rectangle.y + rectangle.height / 2) / SkullsIsland.PPM;
+        bodyDef.position.set(x, y);
+
+        Body body = world.createBody(bodyDef);
+
+        PolygonShape shape = new PolygonShape();
+        shape.setAsBox(
+            rectangle.width / 2 / SkullsIsland.PPM,
+            rectangle.height / 2 / SkullsIsland.PPM
+        );
+
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        fixtureDef.friction = 0.5f;
+        fixtureDef.restitution = 0.0f;
+
+        body.createFixture(fixtureDef);
+
+        String type = rectangleObject.getProperties().get("type", String.class);
+        if (type == null) {
+            type = "boundary";
+        }
+
+        body.setUserData(type);
+
+        shape.dispose();
+    }
+
+    private void createCircleBody(CircleMapObject circleObject) {
+        Circle circle = circleObject.getCircle();
+
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.StaticBody;
+        bodyDef.position.set(
+            circle.x / SkullsIsland.PPM,
+            circle.y / SkullsIsland.PPM
+        );
+
+        Body body = world.createBody(bodyDef);
+
+        CircleShape shape = new CircleShape();
+        shape.setRadius(circle.radius / SkullsIsland.PPM);
+
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        fixtureDef.friction = 0.5f;
+
+        body.createFixture(fixtureDef);
+        shape.dispose();
+    }
+
     private void inputHandler(float delta){
         if(player.currentState != Player.State.DEAD) {
             if (Gdx.input.isKeyPressed(Input.Keys.W)) {
@@ -121,6 +212,7 @@ public class GameScreen implements Screen {
 
     public void update(float delta){
         inputHandler(delta);
+        world.step(1/60f, 6, 2);
 
         player.update(delta);
 
@@ -144,6 +236,8 @@ public class GameScreen implements Screen {
         game.spriteBatch.begin();
         player.draw(game.spriteBatch);
         game.spriteBatch.end();
+
+        box2DDebugRenderer.render(world, orthographicCamera.combined);
     }
 
     @Override
@@ -174,6 +268,8 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
         // Destroy screen's assets here.
+        world.dispose();
+        box2DDebugRenderer.dispose();
         tiledMap.dispose();
         orthogonalTiledMapRenderer.dispose();
         player.dispose();
@@ -186,5 +282,9 @@ public class GameScreen implements Screen {
 
     public float getAdjustedTiledMapMetersWidth() {
         return adjustedTiledMapMetersWidth;
+    }
+
+    public World getWorld(){
+        return  world;
     }
 }
