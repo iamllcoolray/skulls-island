@@ -26,6 +26,7 @@ import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hibiscusgames.skullsisland.game.SkullsIsland;
 import com.hibiscusgames.skullsisland.game.sprites.entities.Player;
+import com.hibiscusgames.skullsisland.game.sprites.entities.mobs.Skull;
 import com.hibiscusgames.skullsisland.game.sprites.props.Ball;
 import com.hibiscusgames.skullsisland.game.sprites.utilities.CollisionListener;
 
@@ -56,7 +57,11 @@ public class GameScreen implements Screen {
 
     private final Player player;
     private Array<Ball> balls;
+    private Array<Skull> skulls;
     private Array<Body> bodiesToDestroy;
+
+    private float skullSpawnTimer = 0f;
+    private final float SKULL_SPAWN_INTERVAL = 5f;
 
     private final Music music;
 
@@ -100,6 +105,7 @@ public class GameScreen implements Screen {
 
         player = new Player(this);
         balls = new Array<>();
+        skulls = new Array<>();
         bodiesToDestroy = new Array<>();
 
         music = SkullsIsland.assetManager.get(SkullsIsland.MUSIC_PATH + "pirate.ogg");
@@ -226,6 +232,10 @@ public class GameScreen implements Screen {
         balls.add(ball);
     }
 
+    public void addSkull(Skull skull){
+        skulls.add(skull);
+    }
+
     public void update(float delta){
         inputHandler(delta);
         world.step(1/60f, 6, 2);
@@ -239,8 +249,25 @@ public class GameScreen implements Screen {
             if (ball.shouldDestroy()) {
                 bodiesToDestroy.add(ball.getBody());
                 ball.dispose();
-                balls.removeIndex(i); // ✓ Now has index parameter
+                balls.removeIndex(i);
             }
+        }
+
+        for (int i = skulls.size - 1; i >=0; i--){
+            Skull skull = skulls.get(i);
+            skull.update(delta);
+
+            if(skull.shouldDestroy()){
+                bodiesToDestroy.add(skull.getBody());
+                skull.dispose();
+                skulls.removeIndex(i);
+            }
+        }
+
+        skullSpawnTimer += delta;
+        if (skullSpawnTimer >= SKULL_SPAWN_INTERVAL) {
+            spawnRandomSkull();
+            skullSpawnTimer = 0f;
         }
 
         for (Body body : bodiesToDestroy) {
@@ -252,6 +279,15 @@ public class GameScreen implements Screen {
 
         orthographicCamera.update();
         orthogonalTiledMapRenderer.setView(orthographicCamera);
+    }
+
+    private void spawnRandomSkull() {
+        System.out.println("Skull has spawned!!!");
+        float x = (float) (Math.random() * adjustedTiledMapMetersWidth);
+        float y = (float) (Math.random() * adjustedTiledMapMetersHeight);
+
+        Skull skull = new Skull(this, player, x, y);
+        addSkull(skull);
     }
 
     @Override
@@ -266,6 +302,9 @@ public class GameScreen implements Screen {
 
         game.spriteBatch.setProjectionMatrix(orthographicCamera.combined);
         game.spriteBatch.begin();
+        for(Skull skull : skulls){
+            skull.draw(game.spriteBatch);
+        }
         player.draw(game.spriteBatch);
         for(Ball ball : balls){
             ball.draw(game.spriteBatch);
@@ -327,6 +366,9 @@ public class GameScreen implements Screen {
         cursor.dispose();
         for (Ball ball : balls) {
             ball.dispose();
+        }
+        for (Skull skull : skulls){
+            skull.dispose();
         }
     }
 }

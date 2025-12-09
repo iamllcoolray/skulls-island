@@ -34,6 +34,14 @@ public class CollisionListener implements ContactListener {
             otherType = (userDataA instanceof String) ? (String) userDataA : null;
         }
 
+        if (userDataA instanceof Ball) {
+            ball = (Ball) userDataA;
+            otherType = (userDataB instanceof String) ? (String) userDataB : null;
+        } else if (userDataB instanceof Ball) {
+            ball = (Ball) userDataB;
+            otherType = (userDataA instanceof String) ? (String) userDataA : null;
+        }
+
         if (player != null && otherType != null) {
             switch (otherType) {
                 case "boundary":
@@ -49,14 +57,6 @@ public class CollisionListener implements ContactListener {
                     player.onItemCollision();
                     break;
             }
-        }
-
-        if (userDataA instanceof Ball) {
-            ball = (Ball) userDataA;
-            otherType = (userDataB instanceof String) ? (String) userDataB : null;
-        } else if (userDataB instanceof Ball) {
-            ball = (Ball) userDataB;
-            otherType = (userDataA instanceof String) ? (String) userDataA : null;
         }
 
         if (ball != null && otherType != null) {

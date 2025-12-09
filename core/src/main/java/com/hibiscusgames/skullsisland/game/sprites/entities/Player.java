@@ -54,7 +54,7 @@ public class Player extends Sprite {
     private final Sound throwSound;
 
     private float throwCooldown;
-    private float throwCooldownTime = 5.0f;
+    private float throwCooldownTime;
 
     public Player(GameScreen gameScreen) {
         this.gameScreen = gameScreen;
@@ -99,6 +99,7 @@ public class Player extends Sprite {
         throwSound = SkullsIsland.assetManager.get(SkullsIsland.SFX_PATH + "throw.wav");
 
         throwCooldown = 0f;
+        throwCooldownTime = 5.0f;
     }
 
     private void createBody(float x, float y, float size) {
@@ -128,10 +129,7 @@ public class Player extends Sprite {
         previousState = currentState;
         animationDuration += delta;
 
-        setPosition(
-            body.getPosition().x - getWidth() / 2,
-            body.getPosition().y - getHeight() / 2
-        );
+        setPosition(body.getPosition().x - getWidth() / 2, body.getPosition().y - getHeight() / 2);
 
         if (throwCooldown > 0) {
             throwCooldown -= delta;
@@ -220,7 +218,7 @@ public class Player extends Sprite {
     }
 
     public void throwBall() {
-        if (throwCooldown <= 0){
+        if (canThrow()){
             playThrowSound();
             spawnBall();
             throwCooldown = throwCooldownTime;
