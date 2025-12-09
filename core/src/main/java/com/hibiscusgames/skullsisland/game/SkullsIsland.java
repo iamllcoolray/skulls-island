@@ -32,6 +32,7 @@ public class SkullsIsland extends Game {
         assetManager.load(SFX_PATH + "walking-on-grass.ogg", Sound.class);
         assetManager.load(SFX_PATH + "throw.wav", Sound.class);
         assetManager.load(SFX_PATH + "wet-break-2.wav", Sound.class);
+        assetManager.load(SFX_PATH + "cork-pop.ogg", Sound.class);
 
         assetManager.finishLoading();
 

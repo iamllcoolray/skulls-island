@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.physics.box2d.*;
 import com.hibiscusgames.skullsisland.game.SkullsIsland;
 import com.hibiscusgames.skullsisland.game.screens.GameScreen;
+import com.hibiscusgames.skullsisland.game.sprites.props.Ball;
 import com.hibiscusgames.skullsisland.game.sprites.utilities.Animate;
 
 public class Player extends Sprite {
@@ -53,7 +54,7 @@ public class Player extends Sprite {
     private final Sound throwSound;
 
     private float throwCooldown;
-    private final float throwCooldownTime = 5.0f;
+    private float throwCooldownTime = 5.0f;
 
     public Player(GameScreen gameScreen) {
         this.gameScreen = gameScreen;
@@ -228,6 +229,8 @@ public class Player extends Sprite {
 
     public void spawnBall(){
         System.out.println("Ball was thrown!!!");
+        Ball ball = new Ball(gameScreen, this);
+        gameScreen.addBall(ball);
     }
 
     public boolean canThrow(){
@@ -248,17 +251,14 @@ public class Player extends Sprite {
 
     public void onBoundaryCollision() {
         System.out.println("Player collided with boundary!");
-        // Play sound, take damage, etc.
     }
 
     public void onEnemyCollision() {
         System.out.println("Player collided with enemy!");
-        // Take damage, play hurt sound
     }
 
     public void onItemCollision() {
         System.out.println("Player collected item!");
-        // Add to inventory, play pickup sound
     }
 
     public void dispose(){

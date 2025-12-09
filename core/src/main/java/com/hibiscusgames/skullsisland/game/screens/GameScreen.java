@@ -20,11 +20,13 @@ import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Null;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hibiscusgames.skullsisland.game.SkullsIsland;
 import com.hibiscusgames.skullsisland.game.sprites.entities.Player;
+import com.hibiscusgames.skullsisland.game.sprites.props.Ball;
 import com.hibiscusgames.skullsisland.game.sprites.utilities.CollisionListener;
 
 /** First screen of the application. Displayed after the application is created. */
@@ -53,6 +55,8 @@ public class GameScreen implements Screen {
     private MapLayer boundaryLayer;
 
     private final Player player;
+    private Array<Ball> balls;
+    private Array<Body> bodiesToDestroy;
 
     private final Music music;
 
@@ -95,6 +99,8 @@ public class GameScreen implements Screen {
         createBoundaries();
 
         player = new Player(this);
+        balls = new Array<>();
+        bodiesToDestroy = new Array<>();
 
         music = SkullsIsland.assetManager.get(SkullsIsland.MUSIC_PATH + "pirate.ogg");
         music.setLooping(true);
@@ -216,11 +222,31 @@ public class GameScreen implements Screen {
         }
     }
 
+    public void addBall(Ball ball){
+        balls.add(ball);
+    }
+
     public void update(float delta){
         inputHandler(delta);
         world.step(1/60f, 6, 2);
 
         player.update(delta);
+
+        for (int i = balls.size - 1; i >= 0; i--) {
+            Ball ball = balls.get(i);
+            ball.update(delta);
+
+            if (ball.shouldDestroy()) {
+                bodiesToDestroy.add(ball.getBody());
+                ball.dispose();
+                balls.removeIndex(i); // ✓ Now has index parameter
+            }
+        }
+
+        for (Body body : bodiesToDestroy) {
+            world.destroyBody(body);
+        }
+        bodiesToDestroy.clear();
 
         orthographicCamera.position.set(player.getCenterX(), player.getCenterY(), 0);
 
@@ -241,6 +267,9 @@ public class GameScreen implements Screen {
         game.spriteBatch.setProjectionMatrix(orthographicCamera.combined);
         game.spriteBatch.begin();
         player.draw(game.spriteBatch);
+        for(Ball ball : balls){
+            ball.draw(game.spriteBatch);
+        }
         game.spriteBatch.end();
 
         box2DDebugRenderer.render(world, orthographicCamera.combined);
@@ -271,17 +300,6 @@ public class GameScreen implements Screen {
         // This method is called when another screen replaces this one.
     }
 
-    @Override
-    public void dispose() {
-        // Destroy screen's assets here.
-        world.dispose();
-        box2DDebugRenderer.dispose();
-        tiledMap.dispose();
-        orthogonalTiledMapRenderer.dispose();
-        player.dispose();
-        cursor.dispose();
-    }
-
     public float getAdjustedTiledMapMetersHeight() {
         return adjustedTiledMapMetersHeight;
     }
@@ -292,5 +310,23 @@ public class GameScreen implements Screen {
 
     public World getWorld(){
         return  world;
+    }
+
+    public OrthographicCamera getOrthographicCamera(){
+        return orthographicCamera;
+    }
+
+    @Override
+    public void dispose() {
+        // Destroy screen's assets here.
+        world.dispose();
+        box2DDebugRenderer.dispose();
+        tiledMap.dispose();
+        orthogonalTiledMapRenderer.dispose();
+        player.dispose();
+        cursor.dispose();
+        for (Ball ball : balls) {
+            ball.dispose();
+        }
     }
 }
