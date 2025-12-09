@@ -31,24 +31,30 @@ import com.hibiscusgames.skullsisland.game.sprites.utilities.CollisionListener;
 public class GameScreen implements Screen {
     private final SkullsIsland game;
 
-    private OrthographicCamera orthographicCamera;
-    private Viewport viewport;
+    private final OrthographicCamera orthographicCamera;
+    private final Viewport viewport;
     private final float SPEED = 10f;
 
-    private TmxMapLoader tmxMapLoader;
-    private TiledMap tiledMap;
-    private OrthogonalTiledMapRenderer orthogonalTiledMapRenderer;
-    private MapProperties mapProperties;
-    private int tiledMapTileWidth, tiledMapTileHeight, tiledMapPixelWidth, tiledMapPixelHeight;
-    private float totaltiledMapPixelsWidth, totaltiledMapPixelsHeight, adjustedTiledMapMetersWidth, adjustedTiledMapMetersHeight;
+    private final TmxMapLoader tmxMapLoader;
+    private final TiledMap tiledMap;
+    private final OrthogonalTiledMapRenderer orthogonalTiledMapRenderer;
+    private final MapProperties mapProperties;
+    private final int tiledMapTileWidth;
+    private final int tiledMapTileHeight;
+    private final int tiledMapPixelWidth;
+    private final int tiledMapPixelHeight;
+    private final float totaltiledMapPixelsWidth;
+    private final float totaltiledMapPixelsHeight;
+    private final float adjustedTiledMapMetersWidth;
+    private final float adjustedTiledMapMetersHeight;
 
-    private World world;
-    private Box2DDebugRenderer box2DDebugRenderer;
+    private final World world;
+    private final Box2DDebugRenderer box2DDebugRenderer;
     private MapLayer boundaryLayer;
 
-    private Player player;
+    private final Player player;
 
-    private Music music;
+    private final Music music;
 
     private Cursor cursor;
     private Pixmap crosshairs;

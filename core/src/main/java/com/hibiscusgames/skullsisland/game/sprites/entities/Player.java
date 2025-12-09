@@ -32,16 +32,16 @@ public class Player extends Sprite {
     private final String SPRITE_PATH = "sprites/player/";
     private final byte SPRITE_WIDTH = 96;
     private final byte SPRITE_HEIGHT = 96;
-    private float spriteMetersSize;
+    private final float spriteMetersSize;
     private final int FRAME_COUNT = 4;
     private final float DURATION = 0.15f;
 
-    private Animate animate;
+    private final Animate animate;
     private float animationDuration;
 
-    private GameScreen gameScreen;
+    private final GameScreen gameScreen;
 
-    private World world;
+    private final World world;
     private Body body;
 
     private boolean isDead;
@@ -53,7 +53,7 @@ public class Player extends Sprite {
     private final Sound throwSound;
 
     private float throwCooldown;
-    private float throwCooldownTime = 5.0f;
+    private final float throwCooldownTime = 5.0f;
 
     public Player(GameScreen gameScreen) {
         this.gameScreen = gameScreen;
